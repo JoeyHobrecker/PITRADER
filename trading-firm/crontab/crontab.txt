@@ -1,0 +1,3 @@
+0 2 * * 0    cd /home/pi/trading-firm && docker compose run --rm chief_strategist
+*/30 * * * * cd /home/pi/trading-firm && docker compose run --rm legal_sentinel
+15 0 * * *   cd /home/pi/trading-firm && docker compose run --rm macro_calendar
