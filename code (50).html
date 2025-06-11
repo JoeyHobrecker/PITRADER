@@ -1377,13 +1377,18 @@ var(--accent-color); color: var(--text-color); }
             const el = document.createElement('div');
             el.className = `task-card status-${task.status} ${task.completed ? 'completed' : ''} ${task.isToday ? 'today-task' : ''}`;
             el.dataset.id = task.id;
-            
-            // ... innerHTML for task card
-            el.innerHTML = `<div class="task-header"><h4 class="task-title">${task.title}</h4></div><p>${task.description || ''}</p>`;
-            
+
+            el.innerHTML = `
+                <div class="task-header">
+                    <h4 class="task-title">${task.title}</h4>
+                    <button class="task-action-btn complete-task-btn">${task.completed ? 'Undo' : 'Done'}</button>
+                </div>
+                <p class="task-description">${task.description || ''}</p>
+            `;
+
             // Add drag-and-shake event listeners
             el.addEventListener('mousedown', onDragStart);
-            
+
             return el;
         }
 
@@ -1533,7 +1538,53 @@ var(--accent-color); color: var(--text-color); }
             // Add other specific event listeners here
             document.getElementById('dashboard-quick-add-task')?.addEventListener('click', () => {
                 navigateToView('tasks');
-                // Additional logic to open quick add
+                document.getElementById('quick-task-area')?.classList.remove('hidden');
+                document.getElementById('quick-task-input')?.focus();
+            });
+
+            document.getElementById('add-task-btn')?.addEventListener('click', () => {
+                const title = prompt('Enter task title:');
+                if (title) {
+                    const newTask = { id: Date.now().toString(), title, description: '', completed: false, status: 'active', priority: 0 };
+                    tasks.push(newTask);
+                    renderFilteredTasks();
+                }
+            });
+
+            const quickAddBtn = document.getElementById('quick-add-btn');
+            const quickTaskArea = document.getElementById('quick-task-area');
+            quickAddBtn?.addEventListener('click', () => {
+                quickTaskArea.classList.toggle('hidden');
+                document.getElementById('quick-task-input')?.focus();
+            });
+
+            document.getElementById('quick-task-input')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const val = e.target.value.trim();
+                    if (val) {
+                        const newTask = { id: Date.now().toString(), title: val, description: '', completed: false, status: 'active', priority: 0 };
+                        tasks.push(newTask);
+                        e.target.value = '';
+                        renderFilteredTasks();
+                    }
+                }
+            });
+
+            document.getElementById('clear-completed-btn')?.addEventListener('click', () => {
+                tasks = tasks.filter(t => !t.completed);
+                renderFilteredTasks();
+            });
+
+            document.getElementById('tasks-list')?.addEventListener('click', (e) => {
+                const completeBtn = e.target.closest('.complete-task-btn');
+                if (completeBtn) {
+                    const taskEl = completeBtn.closest('.task-card');
+                    const task = tasks.find(t => t.id === taskEl.dataset.id);
+                    if (task) {
+                        task.completed = !task.completed;
+                        renderFilteredTasks();
+                    }
+                }
             });
         }
 
