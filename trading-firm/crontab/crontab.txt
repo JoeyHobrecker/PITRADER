@@ -1,3 +1,18 @@
-0 2 * * 0    cd /home/pi/trading-firm && docker compose run --rm chief_strategist
-*/30 * * * * cd /home/pi/trading-firm && docker compose run --rm legal_sentinel
-15 0 * * *   cd /home/pi/trading-firm && docker compose run --rm macro_calendar
+# System-wide crontab for the host Raspberry Pi.
+# This schedules short-lived Docker containers to perform periodic tasks.
+# Make sure you are in the trading-firm/ directory or provide the full path to docker-compose.yml.
+#
+# m h  dom mon dow   command
+# ---------------------------------------------------------------------------------------------
+
+# Every Sunday at 02:00 UTC, run the Chief Strategist to create the weekly playbook.
+0 2 * * 0    cd /path/to/trading-firm && docker compose run --rm chief_strategist
+
+# Every 30 minutes, run the Legal Sentinel to check for court cases.
+*/30 * * * *  cd /path/to/trading-firm && docker compose run --rm legal_sentinel
+
+# Every day at 00:15 UTC, run the Macro Calendar to check for economic events.
+15 0 * * *   cd /path/to/trading-firm && docker compose run --rm macro_calendar
+
+# NOTE: You must replace `/path/to/trading-firm` with the actual absolute path to your project directory.
+# To install this crontab, run: `crontab crontab.txt`
