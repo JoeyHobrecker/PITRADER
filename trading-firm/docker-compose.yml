@@ -1,0 +1,68 @@
+version: '3.9'
+services:
+  redis:
+    image: redis/redis-stack-server:latest
+    ports: ["6379:6379"]
+    volumes: [ "redis-data:/data" ]
+    restart: always
+
+  base_agent: &base_agent
+    build: .
+    restart: unless-stopped
+    depends_on: [redis]
+    volumes:
+      - ./config/settings.yaml:/app/config/settings.yaml:ro
+    environment:
+      - REDIS_HOST=redis
+      - PYTHONUNBUFFERED=1
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - WEAVIATE_URL=${WEAVIATE_URL}
+      - WEAVIATE_API_KEY=${WEAVIATE_API_KEY}
+      - ALPACA_KEY=${ALPACA_KEY}
+      - ALPACA_SECRET=${ALPACA_SECRET}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    healthcheck:
+      test: "redis-cli -h redis get HALT | grep -v '1' || exit 1"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  news_miner:
+    <<: *base_agent
+    command: ["python", "-m", "app.news_miner"]
+
+  signal_maker:
+    <<: *base_agent
+    command: ["python", "-m", "app.signal_maker"]
+
+  trader:
+    <<: *base_agent
+    command: ["python", "-m", "app.trader"]
+
+  watchdog:
+    <<: *base_agent
+    command: ["python", "-m", "app.watchdog"]
+
+  telegram_bot:
+    <<: *base_agent
+    command: ["python", "-m", "app.telegram_bot"]
+
+  chief_strategist:
+    <<: *base_agent
+    restart: "no"
+    command: ["python", "-m", "app.chief_strategist"]
+
+  legal_sentinel:
+    <<: *base_agent
+    restart: "no"
+    command: ["python", "-m", "app.legal_sentinel"]
+
+  macro_calendar:
+    <<: *base_agent
+    restart: "no"
+    command: ["python", "-m", "app.macro_calendar"]
+
+volumes:
+  redis-data:

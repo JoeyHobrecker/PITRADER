@@ -1,0 +1,1 @@
+"""Trading firm agent package."""
